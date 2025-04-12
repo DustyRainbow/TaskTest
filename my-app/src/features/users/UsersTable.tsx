@@ -5,6 +5,7 @@ import {
   CircularProgress, Alert, Dialog, DialogTitle, DialogContent,
   DialogContentText, DialogActions, Typography
 } from '@mui/material';
+import SearchBar, { filterUsers } from './SearchBar';
 import { Edit, Delete } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { fetchUsers, addUser, updateUser, removeUser, setPage } from './usersSlice';
@@ -20,6 +21,9 @@ const UsersTable: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const filteredUsers = filterUsers(users, searchTerm);
 
   useEffect(() => {
     dispatch(fetchUsers({page, per_page}));
@@ -38,12 +42,15 @@ const UsersTable: React.FC = () => {
     <Paper sx={{ width: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" component="h1">Пользователи</Typography>
-        <Button 
-          variant="contained" 
-          onClick={() => setAddModalOpen(true)}
-        >
-          Добавить пользователя
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <SearchBar onSearch={setSearchTerm} />
+          <Button 
+            variant="contained" 
+            onClick={() => setAddModalOpen(true)}
+          >
+            Добавить пользователя
+          </Button>
+        </Box>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -67,7 +74,7 @@ const UsersTable: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.id}</TableCell>
                     <TableCell>
