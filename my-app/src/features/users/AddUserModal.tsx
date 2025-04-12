@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  TextField,
-  Box
-} from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addUser } from './usersSlice';
 import { User } from './types';
+import BaseModal from '../../shared/components/BaseModal';
+import UserForm from './components/UserForm';
+import { Button } from '@mui/material';
 
 const AddUserModal: React.FC<{ 
   open: boolean; 
@@ -26,9 +20,8 @@ const AddUserModal: React.FC<{
     avatar: 'https://reqres.in/img/faces/1-image.jpg'
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = (field: keyof User, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
@@ -46,53 +39,32 @@ const AddUserModal: React.FC<{
     });
   };
 
+  const isFormValid = formData.first_name && formData.last_name && formData.email;
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Добавить нового пользователя</DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Имя"
-            name="first_name"
-            value={formData.first_name}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Фамилия"
-            name="last_name"
-            value={formData.last_name}
-            onChange={handleChange}
-            required
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
-          color="primary"
-          disabled={!formData.first_name || !formData.last_name || !formData.email}
-        >
-          Добавить
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <BaseModal
+      open={open}
+      onClose={onClose}
+      title="Добавить нового пользователя"
+      actions={
+        <>
+          <Button onClick={onClose}>Отмена</Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained" 
+            color="primary"
+            disabled={!isFormValid}
+          >
+            Добавить
+          </Button>
+        </>
+      }
+    >
+      <UserForm 
+        user={formData} 
+        onChange={handleChange}
+      />
+    </BaseModal>
   );
 };
 

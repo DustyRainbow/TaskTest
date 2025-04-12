@@ -1,22 +1,19 @@
 import React, { useEffect } from 'react';
 import { useTheme } from '../../theme';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import SearchBar, { filterUsers } from './SearchBar';
-import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Button, Box, IconButton, TablePagination,
-  CircularProgress, Alert, Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions, Typography
-} from '@mui/material';
-import { Brightness4, Brightness7, Edit, Delete } from '@mui/icons-material';
+import { filterUsers } from './SearchBar';
 import { fetchUsers, removeUser, setPage } from './usersSlice';
+import { User } from './types';
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
-import { User } from './types';
+import { Paper } from '@mui/material';
+import UserTableHeader from './components/UserTableHeader';
+import UserTableBody from './components/UserTableBody';
+import LoadingIndicator from './components/LoadingIndicator';
+import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 
 const UsersTable: React.FC = () => {
   const { mode, toggleTheme } = useTheme();
-  
   const dispatch = useAppDispatch();
   const { data: users, loading, error, page, per_page, total } = useAppSelector(state => state.users);
   
@@ -25,6 +22,13 @@ const UsersTable: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const sortableKeys = ['id', 'first_name', 'last_name', 'email'] as const;
+  type SortableKey = typeof sortableKeys[number];
+  
+  const [sortConfig, setSortConfig] = React.useState<{key: SortableKey; direction: 'asc' | 'desc'}>({
+    key: 'id',
+    direction: 'asc'
+  });
 
   const filteredUsers = filterUsers(users, searchTerm);
 
@@ -36,8 +40,6 @@ const UsersTable: React.FC = () => {
     dispatch(removeUser(id));
     setDeleteDialogOpen(false);
   };
-
-  const [sortConfig, setSortConfig] = React.useState<{key: SortableKey; direction: 'asc' | 'desc'}>({key: 'id', direction: 'asc'});
 
   const handlePageChange = (event: unknown, newPage: number) => {
     dispatch(setPage(newPage + 1));
@@ -51,40 +53,26 @@ const UsersTable: React.FC = () => {
     setSortConfig({key, direction});
   };
 
-  const sortableKeys = ['id', 'first_name', 'last_name', 'email'] as const;
-  type SortableKey = typeof sortableKeys[number];
-
   const sortedUsers = React.useMemo(() => {
     const sortableItems = [...filteredUsers];
     if (sortConfig.key) {
       const key = sortConfig.key;
       sortableItems.sort((a, b) => {
-        // Special case for numeric ID comparison
         if (key === 'id') {
           const aVal = Number(a[key]);
           const bVal = Number(b[key]);
           return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
         }
         
-        // Standard string comparison for other fields
         const aVal = String(a[key]).toLowerCase();
         const bVal = String(b[key]).toLowerCase();
-        if (aVal < bVal) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aVal > bVal) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
     return sortableItems;
   }, [filteredUsers, sortConfig]);
-
-  const getSortIndicator = (key: SortableKey) => {
-    if (sortConfig.key !== key) return null;
-    return sortConfig.direction === 'asc' ? '↑' : '↓';
-  };
 
   return (
     <Paper sx={{ 
@@ -93,109 +81,36 @@ const UsersTable: React.FC = () => {
       bgcolor: 'background.default',
       color: 'text.primary'
     }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" component="h1">Пользователи</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <IconButton onClick={toggleTheme} color="inherit">
-            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-          </IconButton>
-          <SearchBar onSearch={setSearchTerm} />
-          <Button 
-            variant="contained" 
-            onClick={() => setAddModalOpen(true)}
-          >
-            Добавить пользователя
-          </Button>
-        </Box>
-      </Box>
-
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <UserTableHeader
+        title="Пользователи"
+        mode={mode}
+        onToggleTheme={toggleTheme}
+        onAddUser={() => setAddModalOpen(true)}
+        onSearch={setSearchTerm}
+      />
 
       {loading ? (
-        <Box display="flex" justifyContent="center" p={4}>
-          <CircularProgress />
-        </Box>
+        <LoadingIndicator />
       ) : (
-        <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell 
-                    onClick={() => handleSort('id')}
-                    style={{cursor: 'pointer'}}
-                  >
-                    ID {getSortIndicator('id')}
-                  </TableCell>
-                  <TableCell>Аватар</TableCell>
-                  <TableCell 
-                    onClick={() => handleSort('first_name')}
-                    style={{cursor: 'pointer'}}
-                  >
-                    Имя {getSortIndicator('first_name')}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => handleSort('last_name')}
-                    style={{cursor: 'pointer'}}
-                  >
-                    Фамилия {getSortIndicator('last_name')}
-                  </TableCell>
-                  <TableCell 
-                    onClick={() => handleSort('email')}
-                    style={{cursor: 'pointer'}}
-                  >
-                    Email {getSortIndicator('email')}
-                  </TableCell>
-                  <TableCell>Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.id}</TableCell>
-                    <TableCell>
-                      <img 
-                        src={user.avatar} 
-                        alt={`${user.first_name} ${user.last_name}`}
-                        style={{ width: 50, height: 50, borderRadius: '50%' }}
-                      />
-                    </TableCell>
-                    <TableCell>{user.first_name}</TableCell>
-                    <TableCell>{user.last_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <IconButton 
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setEditModalOpen(true);
-                        }}
-                      >
-                        <Edit color="primary" />
-                      </IconButton>
-                      <IconButton 
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Delete color="error" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <TablePagination
-            rowsPerPageOptions={[per_page]}
-            component="div"
-            count={total}
-            rowsPerPage={per_page}
-            page={page - 1}
-            onPageChange={handlePageChange}
-          />
-        </>
+        <UserTableBody
+          users={sortedUsers}
+          loading={loading}
+          error={error}
+          page={page}
+          per_page={per_page}
+          total={total}
+          sortConfig={sortConfig}
+          onPageChange={handlePageChange}
+          onSort={handleSort}
+          onEdit={(user) => {
+            setSelectedUser(user);
+            setEditModalOpen(true);
+          }}
+          onDelete={(user) => {
+            setSelectedUser(user);
+            setDeleteDialogOpen(true);
+          }}
+        />
       )}
 
       <AddUserModal 
@@ -211,27 +126,12 @@ const UsersTable: React.FC = () => {
         />
       )}
 
-      <Dialog
+      <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Подтверждение удаления</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Вы уверены, что хотите удалить пользователя {selectedUser?.first_name} {selectedUser?.last_name}?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
-          <Button 
-            onClick={() => selectedUser && handleDelete(selectedUser.id)} 
-            color="error"
-            variant="contained"
-          >
-            Удалить
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={() => selectedUser && handleDelete(selectedUser.id)}
+        user={selectedUser}
+      />
     </Paper>
   );
 };

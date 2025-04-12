@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  TextField,
-  Box
-} from '@mui/material';
 import { useAppDispatch } from '../../app/hooks';
 import { updateUser } from './usersSlice';
 import { User } from './types';
+import BaseModal from '../../shared/components/BaseModal';
+import UserForm from './components/UserForm';
+import { Button } from '@mui/material';
 
 interface EditUserModalProps {
   open: boolean;
@@ -22,9 +16,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onClose, user }) =>
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<User>(user);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = (field: keyof User, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
@@ -33,48 +26,28 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ open, onClose, user }) =>
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Редактировать пользователя</DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Имя"
-            name="first_name"
-            value={formData.first_name}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Фамилия"
-            name="last_name"
-            value={formData.last_name}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
-          color="primary"
-        >
-          Сохранить
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <BaseModal
+      open={open}
+      onClose={onClose}
+      title="Редактировать пользователя"
+      actions={
+        <>
+          <Button onClick={onClose}>Отмена</Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained" 
+            color="primary"
+          >
+            Сохранить
+          </Button>
+        </>
+      }
+    >
+      <UserForm 
+        user={formData}
+        onChange={handleChange}
+      />
+    </BaseModal>
   );
 };
 
