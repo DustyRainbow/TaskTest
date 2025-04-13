@@ -20,24 +20,21 @@
 ## Технологии
 
 - **Frontend**:
-  - React 18
-  - TypeScript
-  - Material UI (MUI) v5
-  - Redux Toolkit
-  - React Hook Form
-  - React Context API (для темы)
+- React 18
+- TypeScript
+- Material UI (MUI) v5
+- Redux Toolkit
+- React Hook Form
+- React Context API (для темы)
 
 ## Установка и запуск
 
 1. Установка зависимостей:
-  - npm install
-# или
-  - yarn install
+- npm install
+- yarn install
 
 
 2. Запуск development сервера:
-
-  - npm start
-# или 
-  - yarn start
+- npm start
+- yarn start
 
