@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppDispatch } from '../../app/hooks';
 import { updateUser } from './usersSlice';
 import { User } from './types';
@@ -15,6 +15,10 @@ interface EditUserModalProps {
 const EditUserModal: React.FC<EditUserModalProps> = ({ open, onClose, user }) => {
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<User>(user);
+
+  useEffect(() => {
+    setFormData(user);
+  }, [user]);
 
   const handleChange = (field: keyof User, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
