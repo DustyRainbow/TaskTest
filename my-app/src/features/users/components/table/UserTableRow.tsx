@@ -1,7 +1,7 @@
 import React from 'react';
-import { TableCell, TableRow, IconButton, Avatar } from '@mui/material';
+import { TableRow, TableCell, Avatar, IconButton } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import { User } from '../types';
+import { User } from '../../types';
 
 type UserTableRowProps = {
   user: User;
@@ -21,10 +21,10 @@ const UserTableRow: React.FC<UserTableRowProps> = ({ user, onEdit, onDelete }) =
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <IconButton onClick={() => onEdit(user)}>
-          <Edit color="primary" />
+          <Edit />
         </IconButton>
         <IconButton onClick={() => onDelete(user)}>
-          <Delete color="error" />
+          <Delete />
         </IconButton>
       </TableCell>
     </TableRow>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
 
 type SortIndicatorProps = {
   isActive: boolean;
@@ -7,7 +8,10 @@ type SortIndicatorProps = {
 
 const SortIndicator: React.FC<SortIndicatorProps> = ({ isActive, direction }) => {
   if (!isActive) return null;
-  return <span>{direction === 'asc' ? '↑' : '↓'}</span>;
+  
+  return direction === 'asc' 
+    ? <ArrowUpward fontSize="small" /> 
+    : <ArrowDownward fontSize="small" />;
 };
 
 export default SortIndicator;

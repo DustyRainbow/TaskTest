@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addUser } from './usersSlice';
 import { User } from './types';
 import BaseModal from '../../shared/components/BaseModal';
-import UserForm from './components/UserForm';
+import UserForm from './components/forms/UserForm';
 import { Button } from '@mui/material';
 
 const AddUserModal: React.FC<{ 

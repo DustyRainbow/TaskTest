@@ -3,26 +3,28 @@
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "@app/*": ["app/*"],
-      "@features/*": ["features/*"],
-      "@theme": ["theme/index"],
-      "@theme/*": ["theme/*"],
-      "@services": ["services"]
-    }
+      "@app/*": ["src/app/*"],
+      "@features/*": ["src/features/*"],
+      "@theme/*": ["src/theme/*"],
+      "@services/*": ["src/services/*"]
+    },
+    "types": ["node", "jest"],
+    "typeRoots": ["node_modules/@types"],
+    "allowImportingTsExtensions": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

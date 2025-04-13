@@ -1,91 +1,57 @@
-import React, { useEffect } from 'react';
-import { useTheme } from '../../theme';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { filterUsers } from './SearchBar';
-import { fetchUsers, removeUser, setPage } from './usersSlice';
+import React from 'react';
 import { User } from './types';
-import AddUserModal from './AddUserModal';
-import EditUserModal from './EditUserModal';
+import { useTheme } from '../../theme';
+import useUsers from './hooks/useUsers';
+import useUsersModals from './hooks/useUsersModals';
 import { Paper } from '@mui/material';
-import UserTableHeader from './components/UserTableHeader';
+import UserTableHeader from './components/table/UserTableHeader';
 import UserTableBody from './components/UserTableBody';
 import LoadingIndicator from './components/LoadingIndicator';
+import AddUserModal from './AddUserModal';
+import EditUserModal from './EditUserModal';
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 
 const UsersTable: React.FC = () => {
   const { mode, toggleTheme } = useTheme();
-  const dispatch = useAppDispatch();
-  const { data: users, loading, error, page, per_page, total } = useAppSelector(state => state.users);
+  const {
+    users,
+    loading,
+    error,
+    page,
+    per_page,
+    total,
+    setSearchTerm,
+    handleSort,
+    setPage,
+    removeUser,
+    sortConfig
+  } = useUsers();
   
-  const [addModalOpen, setAddModalOpen] = React.useState(false);
-  const [editModalOpen, setEditModalOpen] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const sortableKeys = ['id', 'first_name', 'last_name', 'email'] as const;
-  type SortableKey = typeof sortableKeys[number];
+  const { modals } = useUsersModals();
   
-  const [sortConfig, setSortConfig] = React.useState<{key: SortableKey; direction: 'asc' | 'desc'}>({
-    key: 'id',
-    direction: 'asc'
-  });
-
-  const filteredUsers = filterUsers(users, searchTerm);
-
-  useEffect(() => {
-    dispatch(fetchUsers({page, per_page}));
-  }, [dispatch, page, per_page]);
+  const handlePageChange = (event: unknown, newPage: number) => {
+    setPage(newPage + 1);
+  };
 
   const handleDelete = (id: number) => {
-    dispatch(removeUser(id));
-    setDeleteDialogOpen(false);
+    removeUser(id);
+    modals.delete.closeDialog();
   };
-
-  const handlePageChange = (event: unknown, newPage: number) => {
-    dispatch(setPage(newPage + 1));
-  };
-
-  const handleSort = (key: SortableKey) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({key, direction});
-  };
-
-  const sortedUsers = React.useMemo(() => {
-    const sortableItems = [...filteredUsers];
-    if (sortConfig.key) {
-      const key = sortConfig.key;
-      sortableItems.sort((a, b) => {
-        if (key === 'id') {
-          const aVal = Number(a[key]);
-          const bVal = Number(b[key]);
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-        
-        const aVal = String(a[key]).toLowerCase();
-        const bVal = String(b[key]).toLowerCase();
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [filteredUsers, sortConfig]);
 
   return (
     <Paper sx={{ 
-      width: '100%', 
+      width: '95%', 
+      maxWidth: 1200,
       p: 2,
       bgcolor: 'background.default',
-      color: 'text.primary'
+      color: 'text.primary',
+      mx: 'auto'
     }}>
       <UserTableHeader
         title="Пользователи"
         mode={mode}
         onToggleTheme={toggleTheme}
-        onAddUser={() => setAddModalOpen(true)}
+        onAddUser={modals.add.openModal}
         onSearch={setSearchTerm}
       />
 
@@ -93,7 +59,7 @@ const UsersTable: React.FC = () => {
         <LoadingIndicator />
       ) : (
         <UserTableBody
-          users={sortedUsers}
+          users={users}
           loading={loading}
           error={error}
           page={page}
@@ -102,36 +68,32 @@ const UsersTable: React.FC = () => {
           sortConfig={sortConfig}
           onPageChange={handlePageChange}
           onSort={handleSort}
-          onEdit={(user) => {
-            setSelectedUser(user);
-            setEditModalOpen(true);
-          }}
-          onDelete={(user) => {
-            setSelectedUser(user);
-            setDeleteDialogOpen(true);
-          }}
+          onEdit={modals.edit.openModal}
+          onDelete={modals.delete.openDialog}
         />
       )}
 
       <AddUserModal 
-        open={addModalOpen} 
-        onClose={() => setAddModalOpen(false)} 
+        open={modals.add.open} 
+        onClose={modals.add.closeModal} 
       />
 
-      {selectedUser && (
+      {modals.edit.user && (
         <EditUserModal
-          open={editModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          user={selectedUser}
+          open={modals.edit.open}
+          onClose={modals.edit.closeModal}
+          user={modals.edit.user}
         />
       )}
 
-      <DeleteConfirmationDialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={() => selectedUser && handleDelete(selectedUser.id)}
-        user={selectedUser}
-      />
+      {modals.delete.user && (
+        <DeleteConfirmationDialog
+          open={modals.delete.open}
+          onClose={modals.delete.closeDialog}
+          onConfirm={() => modals.delete.user && handleDelete(modals.delete.user.id)}
+          user={modals.delete.user}
+        />
+      )}
     </Paper>
   );
 };

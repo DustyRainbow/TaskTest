@@ -4,7 +4,7 @@ import {
   Box,
   FormControl
 } from '@mui/material';
-import { User } from '../types';
+import { User } from '../../types';
 
 type UserFormProps = {
   user?: Partial<User>;

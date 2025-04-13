@@ -28,6 +28,12 @@
   color: #61dafb;
 }
 
+.table-container {
+  max-width: 90%;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

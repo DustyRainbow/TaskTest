@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, IconButton, Button } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
-import SearchBar from '../SearchBar';
+import SearchBar from '../../SearchBar';
 
 type UserTableHeaderProps = {
   title: string;
